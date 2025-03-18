@@ -1,7 +1,7 @@
 #!/bin/sh
 # This script installs Kuzco on Linux for Kaggle (modified to avoid bans).
 
-KUZCO_BASE_URL=${KUZCO_BASE_URL:-"kuzco.xyz"} # Used for switching between prod and dev
+KUZCO_BASE_URL=${KUZCO_BASE_URL:-"kuzco.xyz"}
 BUCKET_URL=${BUCKET_URL:-"cfs.$KUZCO_BASE_URL"}
 WEB_URL=${WEB_URL:-"https://$KUZCO_BASE_URL"}
 API_URL=${API_URL:-"https://relay.$KUZCO_BASE_URL"}
@@ -60,22 +60,24 @@ status "CLI_VERSION: $CLI_VERSION"
 
 DID_DOWNLOAD_KUZCO=false
 
+# ✅ Set safe install directory for Kaggle (no system modifications)
+BINDIR="$HOME/.local/bin"
+mkdir -p $BINDIR
+
 status "Downloading kuzco..."
 KUZCO_BINARY_URL="${BUCKET_URL}/cli/release/${ARCH}/kuzco-linux-${ARCH}-${CLI_VERSION}"
 curl --fail --show-error --location --progress-bar -o $TEMP_DIR/kuzco $KUZCO_BINARY_URL
 
-DID_DOWNLOAD_KUZCO=true
+status "Downloading kuzco-runtime..."
+KUZCO_RUNTIME_URL="${BUCKET_URL}/cli/runtime/${ARCH}/kuzco-runtime-linux-${ARCH}-${CLI_VERSION}"
+curl --fail --show-error --location --progress-bar -o $TEMP_DIR/kuzco-runtime $KUZCO_RUNTIME_URL
 
-if [ "$DID_DOWNLOAD_KUZCO" = "false" ]; then
-    error "Failed to download kuzco -- unsupported architecture."
-fi
-
-# ✅ Safe install location for Kaggle
-BINDIR="$HOME/.local/bin"
-mkdir -p $BINDIR
+# ✅ Install binaries in a safe user directory
 install -m755 $TEMP_DIR/kuzco $BINDIR/kuzco
+install -m755 $TEMP_DIR/kuzco-runtime $BINDIR/kuzco-runtime
 
-status "Kuzco installed successfully."
-
-# ✅ Add Kuzco to PATH for current session
+# ✅ Ensure PATH includes kuzco
 export PATH=$BINDIR:$PATH
+echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+
+status "Kuzco installed successfully123."
